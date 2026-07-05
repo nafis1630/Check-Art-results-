@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result Checker — Official Result Checker</title>
+<style>
+  :root{
+    --ink:#0f1024;
+    --panel:#171935;
+    --panel-2:#1f2247;
+    --gold:#e8b84b;
+    --gold-2:#f7d774;
+    --red:#e4483a;
+    --green:#3ecf8e;
+    --paper:#f6efe1;
+    --muted:#9aa0c3;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(232,184,75,0.10), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(62,207,142,0.08), transparent 40%),
+      var(--ink);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: var(--paper);
+    padding: 24px;
+    overflow-x:hidden;
+  }
+
+  .ticket-wrap{
+    width:100%;
+    max-width:460px;
+  }
+
+  .eyebrow{
+    text-align:center;
+    letter-spacing:.28em;
+    font-size:11px;
+    text-transform:uppercase;
+    color: var(--gold);
+    font-family: 'Courier New', monospace;
+    margin-bottom:10px;
+    opacity:.85;
+  }
+
+  .ticket{
+    position:relative;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid rgba(232,184,75,0.25);
+    border-radius:18px;
+    padding:34px 30px 28px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    width:26px;
+    height:26px;
+    background: var(--ink);
+    border-radius:50%;
+    top:50%;
+    transform:translateY(-50%);
+    box-shadow: 0 0 0 1px rgba(232,184,75,0.25);
+  }
+  .ticket::before{ left:-13px; }
+  .ticket::after{ right:-13px; }
+
+  h1{
+    font-size: 26px;
+    text-align:center;
+    margin: 4px 0 6px;
+    letter-spacing:.01em;
+    color: var(--gold-2);
+    font-weight:700;
+  }
+
+  .sub{
+    text-align:center;
+    color: var(--muted);
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    margin-bottom: 26px;
+    letter-spacing:.02em;
+  }
+
+  .divider{
+    border:none;
+    border-top: 1px dashed rgba(232,184,75,0.3);
+    margin: 22px 0;
+  }
+
+  .stage{
+    min-height: 210px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:16px;
+  }
+
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Courier New', monospace;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-size:14px;
+    padding:16px 28px;
+    border-radius:10px;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold));
+    color:#241a05;
+    box-shadow: 0 10px 20px -8px rgba(232,184,75,0.5);
+    transition: transform .15s ease, box-shadow .15s ease;
+    width:100%;
+  }
+  .btn:hover{ transform: translateY(-2px); box-shadow: 0 14px 26px -8px rgba(232,184,75,0.6); }
+  .btn:active{ transform: translateY(0); }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+  .btn.secondary{
+    background: transparent;
+    color: var(--gold-2);
+    border: 1px solid rgba(232,184,75,0.4);
+    box-shadow:none;
+  }
+
+  .spinner{
+    width:46px; height:46px;
+    border-radius:50%;
+    border: 3px solid rgba(232,184,75,0.2);
+    border-top-color: var(--gold);
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .status-line{
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color: var(--muted);
+    letter-spacing:.03em;
+  }
+
+  .result-badge{
+    font-size: 15px;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    font-family:'Courier New', monospace;
+    padding: 6px 16px;
+    border-radius:999px;
+    border:1px solid rgba(228,72,58,0.5);
+    color: var(--red);
+    background: rgba(228,72,58,0.08);
+  }
+
+  .big-word{
+    font-size: 46px;
+    font-weight:800;
+    color: var(--red);
+    letter-spacing:.03em;
+    text-shadow: 0 0 30px rgba(228,72,58,0.35);
+  }
+
+  .ticket-id{
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing:.05em;
+  }
+
+  .fine-print{
+    text-align:center;
+    font-family:'Courier New', monospace;
+    font-size:10.5px;
+    color: var(--muted);
+    margin-top:22px;
+    opacity:.6;
+    line-height:1.6;
+  }
+
+  /* Video overlay */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(5,6,16,0.92);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding: 20px;
+  }
+  .overlay.show{ display:flex; }
+  .video-box{
+    width:100%;
+    max-width:720px;
+    background: var(--panel);
+    border-radius:14px;
+    border:1px solid rgba(232,184,75,0.25);
+    overflow:hidden;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7);
+  }
+  .video-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 14px 18px;
+    border-bottom:1px solid rgba(232,184,75,0.15);
+  }
+  .video-head span{
+    font-family:'Courier New', monospace;
+    font-size:12px;
+    color: var(--gold-2);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .close-btn{
+    background:none;
+    border:none;
+    color: var(--muted);
+    font-size:20px;
+    cursor:pointer;
+    line-height:1;
+    padding:4px 8px;
+  }
+  .close-btn:hover{ color: var(--paper); }
+  .video-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio: 16/9;
+    background:#000;
+  }
+  .video-frame video, .video-frame iframe{
+    width:100%; height:100%; border:0; display:block;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .spinner{ animation:none; border-top-color: var(--gold); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="ticket-wrap">
+    <div class="eyebrow">Official Verification Portal</div>
+    <div class="ticket">
+      <h1>Result Checker</h1>
+      <div class="sub">Serial No. — <span id="serial"></span></div>
+
+      <hr class="divider">
+
+      <div class="stage" id="stage">
+        <!-- Step 1: initial -->
+        <div id="step-initial">
+          <p class="status-line" style="margin-bottom:18px;">তোমার ART রেজাল্ট দেখতে নিচের বাটনে ক্লিক করো</p>
+          <button class="btn" id="checkBtn">Check Result</button>
+        </div>
+      </div>
+
+      <div class="ticket-id" style="text-align:center; margin-top:10px;">ID: <span id="ticketId"></span></div>
+    </div>
+    <p class="fine-print">তুই জীবনেও পাশ করবি না</p>
+  </div>
+
+  <!-- Video overlay -->
+  <div class="overlay" id="overlay">
+    <div class="video-box">
+      <div class="video-head">
+        <span>Bonus Reveal</span>
+        <button class="close-btn" id="closeOverlay">&times;</button>
+      </div>
+      <div class="video-frame" id="videoFrame"></div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   কনফিগারেশন — এখানে তোমার ভিডিও লিংক বসাও
+   ============================================================
+   অপশন ১: YouTube লিংক হলে নিচেরটা ব্যবহার করো:
+     VIDEO_TYPE = "youtube"
+     VIDEO_URL  = "https://youtu.be/rt0-DCAh4Zs?si=Y-X7lTnU4FOIL5mU"   (embed ফরম্যাটে দিতে হবে)
+
+   অপশন ২: সরাসরি ভিডিও ফাইল (.mp4) লিংক হলে:
+     VIDEO_TYPE = "direct"
+     VIDEO_URL  = "https://example.com/video.mp4"
+   ============================================================ */
+  const VIDEO_TYPE = "youtube"; // "youtube" অথবা "direct"
+  const VIDEO_URL  = "https://github.com/nafis1630/Check-Art-results-/raw/refs/heads/main/Tumi%20fel%20Bangladeshi%20meme%20clip.mp4https://github.com/nafis1630/Check-Art-results-/raw/refs/heads/main/Tumi%20fel%20Bangladeshi%20meme%20clip.mp4"; // <-- এখানে নিজের ভিডিও লিংক বসাও
+
+  // Fake serial/ticket id generation for realism
+  const serial = Math.floor(100000 + Math.random()*899999);
+  const ticketId = "LT-" + new Date().getFullYear() + "-" + Math.floor(1000+Math.random()*8999);
+  document.getElementById('serial').textContent = serial;
+  document.getElementById('ticketId').textContent = ticketId;
+
+  const stage = document.getElementById('stage');
+  const overlay = document.getElementById('overlay');
+  const videoFrame = document.getElementById('videoFrame');
+  const closeOverlay = document.getElementById('closeOverlay');
+
+  document.getElementById('checkBtn').addEventListener('click', startCheck);
+
+  function startCheck(){
+    stage.innerHTML = `
+      <div class="spinner"></div>
+      <p class="status-line">যাচাই করা হচ্ছে... অপেক্ষা করো</p>
+    `;
+    setTimeout(showLotteryStep, 1800);
+  }
+
+  function showLotteryStep(){
+    stage.innerHTML = `
+      <p class="status-line" style="margin-bottom:6px;">তোমার রেজাল্ট প্রকাশ হয়েছে</p>
+      <p class="status-line" style="opacity:.8; margin-bottom:14px;">রেজাল্ট দেখতে ক্লিক করো</p>
+      <button class="btn" id="lotteryBtn">Check Your Result</button>
+    `;
+    document.getElementById('lotteryBtn').addEventListener('click', drawLottery);
+  }
+
+  function drawLottery(){
+    stage.innerHTML = `
+      <div class="spinner"></div>
+      <p class="status-line">Result processing...</p>
+    `;
+    setTimeout(showFail, 2000);
+  }
+
+  function showFail(){
+    stage.innerHTML = `
+      <div class="result-badge">Result Declared</div>
+      <div class="big-word">FAIL</div>
+      <p class="status-line" style="max-width:280px;">তুই জীবনেও পাশ করবি না। যা ভাগ। তবে পাস করতে চাইলে নিচে ক্লিক করো।</p>
+      <button class="btn secondary" id="bonusBtn">Click To Get Pass</button>
+    `;
+    document.getElementById('bonusBtn').addEventListener('click', openVideo);
+  }
+
+  function openVideo(){
+    if(VIDEO_TYPE === "youtube"){
+      videoFrame.innerHTML = `<iframe src="${VIDEO_URL}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else {
+      videoFrame.innerHTML = `<video src="${VIDEO_URL}" controls autoplay playsinline></video>`;
+    }
+    overlay.classList.add('show');
+  }
+
+  closeOverlay.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    videoFrame.innerHTML = "";
+  });
+</script>
+
+</body>
+</html>
