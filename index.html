@@ -278,6 +278,9 @@
         <button class="close-btn" id="closeOverlay">&times;</button>
       </div>
       <div class="video-frame" id="videoFrame"></div>
+      <p style="text-align:center; margin:10px 0 14px; padding:0 14px;">
+        <a id="fallbackLink" href="#" target="_blank" rel="noopener" style="font-family:'Courier New', monospace; font-size:12px; color: var(--gold-2); text-decoration:underline;">ভিডিও লোড না হলে এখানে ক্লিক করো</a>
+      </p>
     </div>
   </div>
 
@@ -294,7 +297,7 @@
      VIDEO_URL  = "https://example.com/video.mp4"
    ============================================================ */
   const VIDEO_TYPE = "youtube"; // "youtube" অথবা "direct"
-  const VIDEO_URL  = "https://youtu.be/A1rU9PZh1c0?si=ursWkxZZt_bZuU2C"; // <-- এখানে নিজের ভিডিও লিংক বসাও
+  const VIDEO_URL  = "https://www.youtube.com/embed/A1rU9PZh1c0"; // <-- এখানে নিজের ভিডিও লিংক বসাও
 
   // Fake serial/ticket id generation for realism
   const serial = Math.floor(100000 + Math.random()*899999);
@@ -345,10 +348,13 @@
   }
 
   function openVideo(){
+    const fallback = document.getElementById('fallbackLink');
     if(VIDEO_TYPE === "youtube"){
-      videoFrame.innerHTML = `<iframe src="${VIDEO_URL}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      videoFrame.innerHTML = `<iframe src="${VIDEO_URL}?autoplay=1&playsinline=1&rel=0" title="video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe>`;
+      if(fallback) fallback.href = VIDEO_URL.replace("/embed/", "/watch?v=");
     } else {
       videoFrame.innerHTML = `<video src="${VIDEO_URL}" controls autoplay playsinline></video>`;
+      if(fallback) fallback.href = VIDEO_URL;
     }
     overlay.classList.add('show');
   }
